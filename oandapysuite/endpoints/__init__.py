@@ -1,4 +1,7 @@
 
+from . import accounts
+from . import order
+
 prefix = 'https://api-fxtrade.oanda.com'
 
 accounts_for_token = f'{prefix}/v3/accounts'
@@ -20,5 +23,6 @@ def create_order(ins, units):
             'positionFill': "DEFAULT"
         }
     }
+    return request_body
 
 close_trade = lambda accid, tradeid: f'{accounts_for_token}/{accid}/trades/{tradeid}/close'

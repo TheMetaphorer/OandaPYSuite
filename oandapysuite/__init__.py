@@ -1,3 +1,3 @@
 from . import exceptions
-from . import implementation
+from . import api
 from . import stats

@@ -140,24 +140,32 @@ class APIObject:
     def get_instrument_candles(self, ins, gran, count=500, _from=None, to=None):
         """Returns a CandleCluster object containing candles with historical data. `ins` should be
         a string containing the currency pair you would like to retreive, in the form of BASE_QUOTE.
-        (eg. USD_CAD). `gran` is the granularity of the candles, and should be a strong specifying
+        (eg. USD_CAD). `gran` is the granularity of the candles, and should be a string specifying
         any granularity that you would find in a typical market chart (eg. 'M1', 'M5', 'H1') etc...
         `count` is an optional variable that returns the specified number of candles. Should be an int.
         `_from` and `to` are for if you would prefer to retreive candles from a certain time range.
         These values should be an integer in the format of the UNIX epoch (seconds elapsed since 
         1 January 1970.)"""
 
-        headers = {
-            'Authorization': f'Bearer {self.auth}'
-        }
-        response = get(get_candle(ins, gran, count=count, _from=_from, to=to), headers=headers)
+
+        response = get(get_candle(ins, gran, count=count, _from=_from, to=to), headers=self.auth_header)
         return CandleCluster(response.text)
 
+    def get_accounts(self):
+
+        accounts_list = []
+        response = json.loads(get(accounts_for_token, headers=self.auth_header).text)
+        account_ids = [aid['id'] for aid in response['accounts']]
+        for aid in account_ids:
+            account_data = json.loads(get(account_details(aid), headers=self.auth_header).text)
+            accounts_list.append(accounts.Account(account_data['account']))
+        return accounts_list
+        
     def get_child_candles(self, candle, gran):
-        """Returns the children candles of a specified candle at the specified granuarlity.
-        For example, passing in an H1 candle from 00:00-01:00 on 1 January, using 'M1' as the
-        desired child granularity, will yield a CandleCluster object containing 60 M1 candles, 
-        ranging from the start of the parent candle to the end of the parent candle."""
+        """Returns the children candles (in the form of a CandleCluster object) of a specified 
+        candle at the specified granuarlity. For example, passing in an H1 candle from 00:00-01:00 
+        on 1 January, using 'M1' as the desired child granularity, will yield a CandleCluster object 
+        containing 60 M1 candles, ranging from the start of the parent candle to the end of the parent candle."""
 
         start = int(candle.time.timestamp()) - candlex[candle.gran]
         end = int(candle.time.timestamp())
@@ -167,7 +175,9 @@ class APIObject:
 
     def __init__(self, auth):
         self.auth = str(open(auth, 'r').read())
-    
+        self.auth_header = {
+            'Authorization': f'Bearer {self.auth}'
+        }
     @staticmethod
     def plot(x=None, y=None, style='scatter'):
         """Uses matplotlib to plot and visualize data. In order to plot

@@ -45,7 +45,6 @@ def moving_average(data, period=10):
         mas.append(total/period)
     return mas
 
-
 def standard_deviation(values):
     mean = sum(values)/len(values)
     ss = 0
@@ -53,10 +52,18 @@ def standard_deviation(values):
         ss += (i - mean) ** D(2)
     return ((ss/len(values)) ** D(0.5),mean)
 
-def slope(values):
-    return values[-1]-values[0]/len(values)
+def std_indicator(data, period=10):
+    stds = []
+    for i in range(period):
+        stds.append(None)
+    for j in range(len(data)):
+        if j < period: continue
+        std  = standard_deviation([data[k] for k in range(j-period, j)])
+        stds.append(std)
+    return stds
 
-def derivative(ys, xs):
-    return diff(ys)/diff(xs)
+
+
+
 
 
